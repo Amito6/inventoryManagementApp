@@ -21,7 +21,7 @@ const userSchema = mongoose.Schema({
     },
     photo :{
         type: String,
-        required : [True, "Please add a photo"],
+        required : [true, "Please add a photo"],
         default : "https://i.ibb.co/4pDNDk1/avatar.png"
     },
     phone :{
@@ -40,3 +40,5 @@ const userSchema = mongoose.Schema({
 });
 
 const User = mongoose.model("user",userSchema);
+
+module.exports = User;
