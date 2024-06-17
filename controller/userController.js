@@ -112,9 +112,29 @@ const logoutUser = asyncHandler(async(request,response)=>{
 
 });
 
+/* Create user Profile Route */
+
+/* on fronend on profile page we are getting the userData to display it there so now . we need to create a route to get userInfo from there and form there we can edit or modify the data
+ */
+
+const getUser = asyncHandler(async (request,response)=>{
+    const user = await User.findById(request.user._id);
+    if(user){
+        const {_id,name,email,photo,phone,bio} = user;
+        response.status(200).json({
+            _id,name,email,photo,phone,bio
+        })
+    }else{
+        response.status(400);
+        throw new Error("User Not Found");
+    }
+    response.send("Get User data Api Requested");
+});
+
 
 module.exports = {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    getUser
 }
