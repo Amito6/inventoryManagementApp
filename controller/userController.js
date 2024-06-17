@@ -1,6 +1,12 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+
+const generateToken = (id) =>{
+    return jwt.sign({id},process.env.JWT_SECRETS,{expiresIn : "1d"})
+}
+
 
 const registerUser = asyncHandler( async (request,response)=>{
     const {name,email,password} = request.body;
@@ -28,11 +34,20 @@ const registerUser = asyncHandler( async (request,response)=>{
         password
     });
     console.log(user);
+
+    const token = generateToken(user._id);
+    response.cookie("token",token,{
+        path : "/",
+        httpOnly : true,
+        expires : new Date(Date.now() + 1000*86400),  /* 1 d */
+        sameSite : "none",
+        secure:  true
+    })
     
     if(user){
         const {_id,name,email,photo,phone,bio} = user;
         response.status(201).json({
-            _id,name,email,photo,bio
+            _id,name,email,photo,bio,token
         })
     }
     else{
@@ -41,6 +56,65 @@ const registerUser = asyncHandler( async (request,response)=>{
     }
 });
 
+const loginUser = asyncHandler(async(request,response)=>{
+    const {email,password} = request.body;
+    /* validate user input */
+    if(!email || !password){
+        response.status(400);
+        throw new Error("Pl;ease add email and passowrd");
+    }
+    /* check if user exists in database */
+
+    const user = await User.findOne({email});
+    if(!user){
+        response.status(404);
+        throw new Error("USer not found, Please signup first");
+    }
+    /* user exists, check if password is correct */
+
+    const passwordIsCorrect = await bcrypt.compare(password,user.password);
+    const token = generateToken(user._id);
+
+    if(user && passwordIsCorrect){
+        response.cookie("token",token,{
+            path :"/",
+            httpOnly : true,
+            expires : new Date(Date.now() + 1000 * 86400),
+            sameSite : "none",
+            secure : true
+        })
+        const {_id,name,email,photo,phone,bio} = user;
+        response.status(200).json({
+            _id,name,email,photo,phone,bio
+        });
+    }else{
+        response.status(500);
+        throw new Error("Invalid email or password");
+    }
+    response.send("Login USer Requested");
+
+
+});
+
+const logoutUser = asyncHandler(async(request,response)=>{
+    /* Logout functionality is to make token emply so it won't be get verified and re route the servere back to signup page */
+    response.cookie("token","",{
+        path : "/",
+        httpOnly : true,
+        expires : new Date(0), /* same sec */
+        sameSite : "none",
+        secure : true
+    });
+    return response.status(200).json({
+        message : "Successfully Logged Out"
+    })
+    response.send("Logout Call initiated");
+
+});
+
+
 module.exports = {
-    registerUser
+    registerUser,
+    loginUser,
+    logoutUser
 }

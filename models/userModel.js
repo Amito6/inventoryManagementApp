@@ -43,6 +43,8 @@ const userSchema = mongoose.Schema({
 /* Encrypt Password before saving it to database */
 
 userSchema.pre("save",async function(next){
+
+    /* to work with edit profile field as there we are not going to give any option for password cahnge, so if not modified then we can say it can direct save the changes  if needed */
     if(!this.isModified("password")){
         next();
     }

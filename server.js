@@ -5,9 +5,12 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const userRoute = require("./routes/userRoutes");
 const errorHandler = require("./middleware/errorMiddleware");
-const PORT = process.env.PORT || 5000;
-
+const cookieParser = require("cookie-parser")
 const app = express();
+
+
+
+const PORT = process.env.PORT || 5000;
 
 /* Testing in server.js */
 app.get("/",(req,res)=>{
@@ -18,7 +21,8 @@ app.get("/",(req,res)=>{
 
 app.use(express.json());
 app.use(express.urlencoded({extended:false}))
-app.use(bodyParser.json())
+app.use(bodyParser.json());
+app.use(cookieParser())
 
 /* Routes Middleware */
 
