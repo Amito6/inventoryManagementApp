@@ -131,10 +131,54 @@ const getUser = asyncHandler(async (request,response)=>{
     response.send("Get User data Api Requested");
 });
 
+const loginStatus = asyncHandler (async (request,response)=>{
+    const token = request.cookies.token;
+    if(!token){
+        return response.json(false)
+    }
+    /* verify token */
+    const verified = jwt.verify(token,process.env.JWT_SECRETS);
+    if(verified){
+        return response.json(true)
+    }
+    
+});
+
+const updateUser = asyncHandler(async(request,response)=>{
+    const user = await User.findById(request.user._id)
+    if(user){
+        const user = await User.findById(request.user._id)
+        if(user){
+            const {_id,name,email,photo,phone,bio} = user;
+            user.email = email,
+            user.name = request.body.name || name;
+            user.phone = request.body.phone || phone;
+            user.bio = request.body.bio || bio;
+            user.photo = request.body.photo || photo;
+        }
+
+        const updateUserRes = await user.save();
+        response.status(200).json({
+            _id : updateUserRes._id,
+            name : updateUserRes.name,
+            email : updateUserRes.email,
+            photo : updateUserRes.photo,
+            phone : updateUserRes.phone,
+            bio : updateUserRes.bio
+        })
+    }
+    else{
+        response.status(404);
+        throw new Error("User Not found")
+    }
+});
+
 
 module.exports = {
     registerUser,
     loginUser,
     logoutUser,
-    getUser
+    getUser,
+    loginStatus,
+    updateUser
 }
